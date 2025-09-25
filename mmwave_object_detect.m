@@ -12,7 +12,7 @@ fc = 77.94745e9;                % 载频 [Hz]
 c  = 3e8;                       % 光速
 lambda = c/fc;
 Tc = 70e-6;                     % 单个chirp周期(含idle) [s]
-dataFile = './reflect_verticlal.bin';
+dataFile = './reflect_right.bin';
 DO_OFFSET_SEARCH = true;
 
 %% ====== CFAR 参数 ======
@@ -123,6 +123,56 @@ for k = 1:numel(idx_r)
         k, range_axis(idx_r(k)), v_axis(idx_d(k)));
 end
 
+
+
+
+%% ====== 角度维 FFT（虚拟阵列） ======
+virt_spacing = lambda/2;                       % 默认虚拟阵元间距取半波长
+angleBins = Nrx * Ntx;                         % 角度FFT点数，等于虚拟阵元总数
+angleWin = hann(angleBins);                    % 角度向窗函数
+[angleCube, angleAxis] = compute_angle_fft_cube(RD, Nrx, Ntx, lambda, virt_spacing, angleBins, angleWin);
+
+%% ====== 目标角度估计与3D可视化 ======
+detAngles = [];
+detRanges = [];
+if exist('angleCube','var') && ~isempty(idx_r)
+    numDet = numel(idx_r);
+    detAngles = zeros(numDet, 1);
+    for k = 1:numDet
+        angSpec = squeeze(angleCube(idx_r(k), idx_d(k), :));
+        [~, angIdx] = max(abs(angSpec));
+        detAngles(k) = angleAxis(angIdx);
+        fprintf('检测目标 %2d: 角度 = %.2f 度\n', k, detAngles(k));
+    end
+    detRanges = range_axis(idx_r);
+
+    thetaRad = detAngles * pi/180;
+    x_det = detRanges .* sin(thetaRad);         % 横向坐标
+    y_det = detRanges .* cos(thetaRad);         % 前向坐标
+    z_det = zeros(numDet, 1);                   % 目前假设目标位于地面，高度设为0
+
+    fig3d = figure;
+    hDet = plot3(x_det, y_det, z_det, 'o', 'LineStyle', 'none', 'MarkerSize', 8);
+    set(hDet, 'MarkerFaceColor', [0 1 0], 'MarkerEdgeColor', [0 0.5 0]);
+    hold on;
+    hRadar = plot3(0, 0, 0, 'v', 'LineStyle', 'none', 'MarkerSize', 9);
+    set(hRadar, 'MarkerFaceColor', [0 0 1], 'MarkerEdgeColor', [0 0 0.5]);
+    grid on;
+    xlabel('横向 x (m)');
+    ylabel('前向 y (m)');
+    zlabel('高度 z (m)');
+    title('3D 目标检测结果');
+    xRange = max(20, ceil(max(abs(x_det)) + 2));
+    yRange = max(range_axis);
+    xlim([-xRange, xRange]);
+    ylim([0, max(25, ceil(yRange))]);
+    zlim([-2, 5]);
+    view([-35 35]);
+    legend([hDet, hRadar], {'检测目标', '雷达位置'}, 'Location', 'best');
+end
+
+
+
 %% （保留）每个 Tx 的距离剖面 / Range–Doppler
 for tx = 1:Ntx
     RP_tx = squeeze(mean(sum(abs(RFFT(:,:,:,tx)),3),2));  % [Nr_pos x 1]
@@ -159,4 +209,39 @@ for i = 1:N
         detMask(i) = true;
     end
 end
+end
+
+
+
+function [angleCube, angleAxis] = compute_angle_fft_cube(RD, Nrx, Ntx, lambda, d_elem, NfftAngle, angleWin)
+% RD        : 尺寸为 [rangeBin, dopplerBin, Nrx, Ntx] 的复数数据立方体
+% Nrx/Ntx   : 真实接收与发射天线数
+% lambda    : 工作波长，用于角度轴计算
+% d_elem    : 相邻虚拟阵元间距，默认按半波长处理
+% NfftAngle : 角度FFT点数，默认等于虚拟阵元总数
+% angleWin  : 角度向窗函数（列向量），默认使用全 1
+if nargin < 5 || isempty(d_elem)
+    d_elem = lambda/2;
+end
+if nargin < 6 || isempty(NfftAngle)
+    NfftAngle = Nrx * Ntx;
+end
+if nargin < 7 || isempty(angleWin)
+    angleWin = ones(Nrx * Ntx, 1);
+end
+
+virtualElem = Nrx * Ntx;
+assert(size(RD,3) == Nrx && size(RD,4) == Ntx, 'RD 尺寸与天线数量不匹配');
+assert(numel(angleWin) == virtualElem, '角度窗长度需等于虚拟阵元数量');
+
+virtCube = reshape(permute(RD, [1 2 4 3]), size(RD,1), size(RD,2), virtualElem);  % [range, doppler, virtual]
+angleWin = reshape(angleWin(:).', [1 1 virtualElem]);
+virtCube = virtCube .* angleWin;
+
+angleCube = fftshift(fft(virtCube, NfftAngle, 3), 3);
+
+spatialFreq = (-NfftAngle/2 : NfftAngle/2 - 1) / NfftAngle;
+sinTheta = spatialFreq * lambda / d_elem;
+sinTheta = max(min(sinTheta, 1), -1);
+angleAxis = asind(sinTheta);
 end
