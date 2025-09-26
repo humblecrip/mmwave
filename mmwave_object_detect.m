@@ -15,6 +15,43 @@ Tc = 70e-6;                     % 单个chirp周期(含idle) [s]
 dataFile = './reflect_right.bin';
 DO_OFFSET_SEARCH = true;
 
+%% ====== 从 JSON 读取参数（覆盖上面的默认值） ======
+jsonFile = './0922v2.mmwave.json';
+try
+    cfg = jsondecode(fileread(jsonFile));
+    dev  = cfg.mmWaveDevices(1).rfConfig;
+    prof = dev.rlProfiles(1).rlProfileCfg_t;
+    frm  = dev.rlFrameCfg_t;
+
+    % 单位换算
+    SampleRate     = prof.digOutSampleRate * 1e3;         % ksps → Hz
+    FrequencySlope = prof.freqSlopeConst_MHz_usec * 1e12; % MHz/us → Hz/s
+    Nr             = prof.numAdcSamples;                  % 采样点/Chirp
+    fc             = prof.startFreqConst_GHz * 1e9;       % GHz → Hz
+    lambda         = c / fc;
+    Tc             = (prof.idleTimeConst_usec + prof.rampEndTime_usec) * 1e-6; % us → s
+
+    % 通道掩码 → 天线数
+    rxMask = lower(strrep(dev.rlChanCfg_t.rxChannelEn,'0x',''));
+    txMask = lower(strrep(dev.rlChanCfg_t.txChannelEn,'0x',''));
+    Nrx = sum(dec2bin(hex2dec(rxMask))=='1');
+    Ntx = sum(dec2bin(hex2dec(txMask))=='1');
+
+    % 配置侧：每帧理论 chirp 数（用于对比，不强制）
+    chirpsPerLoop_cfg  = (frm.chirpEndIdx - frm.chirpStartIdx + 1);
+    chirpsPerFrame_cfg = chirpsPerLoop_cfg * frm.numLoops;
+
+    % 打印参数
+    fprintf('==== 从 JSON 读取参数 ====\n');
+    fprintf('  载频 fc: %.3f GHz\n', fc/1e9);
+    fprintf('  采样率 Fs: %.3f Msps\n', SampleRate/1e6);
+    fprintf('  调频斜率: %.6f MHz/us\n', prof.freqSlopeConst_MHz_usec);
+    fprintf('  Nr=%d, Nrx=%d, Ntx=%d, Tc=%.2f us\n', Nr, Nrx, Ntx, Tc*1e6);
+    fprintf('  每帧 chirp(配置) = %d\n', chirpsPerFrame_cfg);
+catch ME
+    warning('读取 JSON 失败，沿用默认参数。原因: %s', ME.message);
+end
+
 %% ====== CFAR 参数 ======
 CFAR_guard  = 8;                % Guard window size
 CFAR_window = 32;               % Training window (每侧)
@@ -23,6 +60,24 @@ alpha = 10^(CFAR_thr_dB/10);
 
 %% ====== 读取原始数据：返回 [Nrx x Nsamp] ======
 adc = readDCA1000(dataFile);    % 默认 16bit, 4 lanes, 复数IQ
+
+%% ====== 依据“总chirp/帧数”计算单帧chirp数，并覆盖 Nd ======
+try
+    if exist('frm','var') && isfield(frm,'numFrames') && frm.numFrames > 0
+        totalChirps_inFile = floor(size(adc,2) / Nr);
+        Nd_data = floor(totalChirps_inFile / frm.numFrames);
+        if exist('chirpsPerFrame_cfg','var') && Nd_data ~= chirpsPerFrame_cfg
+            fprintf('[WARN] 单帧 chirp(数据)=%d ≠ 配置=%d，按数据取值。\n', Nd_data, chirpsPerFrame_cfg);
+        else
+            fprintf('单帧 chirp(数据)= %d\n', Nd_data);
+        end
+        Nd = Nd_data;
+    else
+        fprintf('[INFO] JSON 未提供 numFrames，保持 Nd=%d\n', Nd);
+    end
+catch ME
+    warning('按“总chirp/帧数”计算 Nd 失败，保持 Nd=%d。原因: %s', Nd, ME.message);
+end
 
 %% ====== 可选：粗搜最佳起点偏移（0..Nr-1 样点） ======
 bestOff = 0;
