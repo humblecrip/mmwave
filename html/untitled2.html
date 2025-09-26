@@ -1,0 +1,468 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      -->
+<title>untitled2</title>
+<meta name="generator" content="MATLAB 23.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2025-09-25">
+<meta name="DC.source" content="untitled2.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style>
+</head>
+<body>
+<div class="content">
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#1">main_tdm2tx_demo.m &mdash;&mdash; add CA-CFAR detection (Guard=8, Win=32, Thr=18 dB)</a>
+</li>
+<li>
+<a href="#2">====== 基本参数（按你的实际配置填写） ======</a>
+</li>
+<li>
+<a href="#3">====== CFAR 参数 ======</a>
+</li>
+<li>
+<a href="#4">====== 读取原始数据：返回 [Nrx x Nsamp] ======</a>
+</li>
+<li>
+<a href="#5">====== 可选：粗搜最佳起点偏移（0..Nr-1 样点） ======</a>
+</li>
+<li>
+<a href="#6">====== 截取一帧并 reshape 到 [Nr, Nd, Nrx] ======</a>
+</li>
+<li>
+<a href="#7">====== 按 2Tx 的 TDM 顺序拆分慢时间到每个 Tx ======</a>
+</li>
+<li>
+<a href="#8">====== 1D 距离向 FFT ======</a>
+</li>
+<li>
+<a href="#9">====== 2D 多普勒/速度向 FFT（沿慢时间） ======</a>
+</li>
+<li>
+<a href="#10">====== Range&ndash;Doppler 图（非相干合成 Rx/Tx） ======</a>
+</li>
+<li>
+<a href="#11">====== &mdash;&mdash; 新增：CA-CFAR 目标检测（在功率图上做） ======</a>
+</li>
+<li>
+<a href="#12">（保留）每个 Tx 的距离剖面 / Range&ndash;Doppler</a>
+</li>
+<li>
+<a href="#13">==================== 子函数：1D CA-CFAR（均值） ====================</a>
+</li>
+</ul>
+</div>
+<h2 id="1">main_tdm2tx_demo.m &mdash;&mdash; add CA-CFAR detection (Guard=8, Win=32, Thr=18 dB)</h2>
+<pre class="codeinput">clear; close <span class="string">all</span>; clc;
+</pre>
+<h2 id="2">====== 基本参数（按你的实际配置填写） ======</h2>
+<pre class="codeinput">SampleRate     = 5e6;           <span class="comment">% Fs, ADC采样率 [Hz]</span>
+FrequencySlope = 30e12;         <span class="comment">% 调频斜率 [Hz/s]</span>
+Nr  = 256;                      <span class="comment">% 每个 chirp 的采样点数</span>
+Nd  = 128;                      <span class="comment">% 每帧 chirp 总数(包含所有Tx)</span>
+Nrx = 4;                        <span class="comment">% 接收天线数</span>
+Ntx = 2;                        <span class="comment">% 发射天线数 (TDM-MIMO)</span>
+fc = 77.94745e9;                <span class="comment">% 载频 [Hz]</span>
+c  = 3e8;                       <span class="comment">% 光速</span>
+lambda = c/fc;
+Tc = 70e-6;                     <span class="comment">% 单个chirp周期(含idle) [s]</span>
+dataFile = <span class="string">'./reflect_verticlal.bin'</span>;
+DO_OFFSET_SEARCH = true;
+</pre>
+<h2 id="3">====== CFAR 参数 ======</h2>
+<pre class="codeinput">CFAR_guard  = 8;                <span class="comment">% Guard window size</span>
+CFAR_window = 32;               <span class="comment">% Training window (每侧)</span>
+CFAR_thr_dB = 18;               <span class="comment">% 门限(dB) &mdash;&mdash; x &gt; alpha * 均值</span>
+alpha = 10^(CFAR_thr_dB/10);
+</pre>
+<h2 id="4">====== 读取原始数据：返回 [Nrx x Nsamp] ======</h2>
+<pre class="codeinput">adc = readDCA1000(dataFile);    <span class="comment">% 默认 16bit, 4 lanes, 复数IQ</span>
+</pre>
+<h2 id="5">====== 可选：粗搜最佳起点偏移（0..Nr-1 样点） ======</h2>
+<pre class="codeinput">bestOff = 0;
+<span class="keyword">if</span> DO_OFFSET_SEARCH
+    numChirps = Nd;
+    Ns_need = Nr*numChirps;
+    assert(size(adc,2) &gt;= Ns_need+Nr, <span class="string">'数据长度不足以做offset搜索'</span>);
+    bestScore = -inf;
+    <span class="keyword">for</span> off = 0:Nr-1
+        adcFrame = adc(:, 1+off : off+Ns_need);
+        tmp = permute( reshape(adcFrame, [Nrx, Nr, numChirps]), [2 3 1] ); <span class="comment">% [Nr,Nd,Nrx]</span>
+        RFFT_test = fft(tmp .* reshape(hann(Nr),[Nr 1 1]), Nr, 1);
+        prof = squeeze(mean(mean(abs(RFFT_test(1:floor(Nr/2),:,:)),3),2));  <span class="comment">% 距离剖面</span>
+        score = max(prof);
+        <span class="keyword">if</span> score &gt; bestScore
+            bestScore = score; bestOff = off;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    fprintf(<span class="string">'自动选择的起点偏移 = %d 样点\n'</span>, bestOff);
+<span class="keyword">end</span>
+</pre>
+<pre class="codeoutput">自动选择的起点偏移 = 216 样点
+</pre>
+<h2 id="6">====== 截取一帧并 reshape 到 [Nr, Nd, Nrx] ======</h2>
+<pre class="codeinput">numChirps = Nd;                            <span class="comment">% 总 chirp 数（包含所有Tx）</span>
+adcFrame  = adc(:, 1+bestOff : bestOff+Nr*numChirps);
+tmp       = permute( reshape(adcFrame, [Nrx, Nr, numChirps]), [2 3 1] ); <span class="comment">% [Nr,Nd,Nrx]</span>
+</pre>
+<h2 id="7">====== 按 2Tx 的 TDM 顺序拆分慢时间到每个 Tx ======</h2>
+<pre class="codeinput">Nd_perTx = numChirps / Ntx;
+assert(mod(numChirps,Ntx)==0, <span class="string">'Nd(%d) 不是 Ntx(%d) 的整数倍'</span>, numChirps, Ntx);
+cube = zeros(Nr, Nd_perTx, Nrx, Ntx);
+<span class="keyword">for</span> tx = 1:Ntx
+    chirpIdx = tx:Ntx:numChirps;     <span class="comment">% Tx序列: Tx1,Tx2,Tx1,Tx2,...</span>
+    cube(:,:,:,tx) = tmp(:, chirpIdx, :);   <span class="comment">% [Nr,Nd_perTx,Nrx]</span>
+<span class="keyword">end</span>
+</pre>
+<h2 id="8">====== 1D 距离向 FFT ======</h2>
+<pre class="codeinput">range_win = hann(Nr);
+cube_win  = cube .* reshape(range_win, [Nr 1 1 1]);
+
+NfftR = Nr;                                    <span class="comment">% 可按需零填充</span>
+RFFT  = fft(cube_win, NfftR, 1);               <span class="comment">% [NfftR, Nd_perTx, Nrx, Ntx]</span>
+
+<span class="comment">% 只取正频半谱</span>
+Nr_pos = floor(NfftR/2);
+RFFT   = RFFT(1:Nr_pos, :, :, :);              <span class="comment">% [Nr_pos, Nd_perTx, Nrx, Ntx]</span>
+
+<span class="comment">% 物理距离轴</span>
+range_axis = (0:Nr_pos-1) * (SampleRate/NfftR) * c / (2*FrequencySlope);
+</pre>
+<h2 id="9">====== 2D 多普勒/速度向 FFT（沿慢时间） ======</h2>
+<pre class="codeinput">
+<span class="comment">%RFFT_dc = RFFT - mean(RFFT, 2);                % 去静杂波</span>
+RFFT_dc = RFFT;
+dop_win = hann(Nd_perTx).';
+RFFT_w  = RFFT_dc .* reshape(dop_win, [1 Nd_perTx 1 1]);
+
+NfftD = Nd_perTx;
+RD = fftshift(fft(RFFT_w, NfftD, 2), 2);       <span class="comment">% [Nr_pos, NfftD, Nrx, Ntx]</span>
+
+<span class="comment">% 速度轴（注意 TDM 有效PRF = 1/(Ntx*Tc)）</span>
+PRF_perTx = 1/(Ntx*Tc);
+fD_axis   = (-NfftD/2:NfftD/2-1)/NfftD * PRF_perTx;
+v_axis    = (lambda/2) * fD_axis;
+
+<span class="comment">% 速度分辨率与不模糊速度</span>
+v_res = (lambda/2) * (PRF_perTx/NfftD);
+v_max = (lambda/2) * (PRF_perTx/2);
+fprintf(<span class="string">'速度分辨率: %.4f m/s, 最大不模糊速度: &plusmn;%.4f m/s\n'</span>, v_res, v_max);
+</pre>
+<pre class="codeoutput">速度分辨率: 0.2148 m/s, 最大不模糊速度: &plusmn;6.8728 m/s
+</pre>
+<h2 id="10">====== Range&ndash;Doppler 图（非相干合成 Rx/Tx） ======</h2>
+<p>画幅度图（保持你原有显示）</p>
+<pre class="codeinput">RD_mag = squeeze(sum(sum(abs(RD), 3), 4));     <span class="comment">% [Nr_pos, NfftD]</span>
+RD_dB  = 20*log10(RD_mag + eps);
+figure(1); imagesc(v_axis, range_axis, RD_dB); axis <span class="string">xy</span>;
+xlabel(<span class="string">'速度 (m/s)'</span>); ylabel(<span class="string">'距离 (m)'</span>); title(<span class="string">'Range&ndash;Doppler（非相干合成Rx/Tx）'</span>);
+cb = colorbar; cb.Label.String = <span class="string">'幅度 (dB)'</span>; hold <span class="string">on</span>;
+</pre>
+<img vspace="5" hspace="5" src="untitled2_01.png" alt=""> <h2 id="11">====== &mdash;&mdash; 新增：CA-CFAR 目标检测（在功率图上做） ======</h2>
+<pre class="codeinput">RD_pow = squeeze(sum(sum(abs(RD).^2, 3), 4));  <span class="comment">% 功率图 [Nr_pos, NfftD]</span>
+
+<span class="comment">% 每个多普勒bin做 1D CA-CFAR（沿距离维）</span>
+detMask = false(size(RD_pow));
+<span class="keyword">for</span> d = 1:NfftD
+    x = RD_pow(:, d);                          <span class="comment">% 该多普勒列的功率</span>
+    detMask(:, d) = cfar_ca_1d(x, CFAR_window, CFAR_guard, alpha);
+<span class="keyword">end</span>
+
+<span class="comment">% 抑制邻近多次命中，只保留局部最大</span>
+detMask = detMask &amp; (imregionalmax(RD_pow));
+
+<span class="comment">% 取出检测点并叠加到 RD 图</span>
+[idx_r, idx_d] = find(detMask);
+plot(v_axis(idx_d), range_axis(idx_r), <span class="string">'ro'</span>, <span class="string">'MarkerSize'</span>, 6, <span class="string">'LineWidth'</span>, 1.2);
+legend(<span class="string">'CFAR detections'</span>);
+
+<span class="comment">% 打印检测到的目标 (距离, 速度)</span>
+<span class="keyword">for</span> k = 1:numel(idx_r)
+    fprintf(<span class="string">'Detection %2d: Range = %.2f m, Velocity = %.2f m/s\n'</span>, <span class="keyword">...</span>
+        k, range_axis(idx_r(k)), v_axis(idx_d(k)));
+<span class="keyword">end</span>
+</pre>
+<img vspace="5" hspace="5" src="untitled2_02.png" alt=""> <h2 id="12">（保留）每个 Tx 的距离剖面 / Range&ndash;Doppler</h2>
+<pre class="codeinput">
+<span class="keyword">for</span> tx = 1:Ntx
+    RP_tx = squeeze(mean(sum(abs(RFFT(:,:,:,tx)),3),2));  <span class="comment">% [Nr_pos x 1]</span>
+    figure; plot(range_axis, 20*log10(RP_tx + eps)); grid <span class="string">on</span>;
+    xlabel(<span class="string">'距离 (m)'</span>); ylabel(<span class="string">'幅度 (dB)'</span>);
+    title(sprintf(<span class="string">'距离剖面（Tx%d，非相干合成Rx）'</span>, tx-1));
+<span class="keyword">end</span>
+
+<span class="keyword">for</span> tx = 1:Ntx
+    RD_tx = squeeze(sum(abs(RD(:,:,:,tx)),3));  <span class="comment">% [Nr_pos, NfftD]</span>
+    figure; imagesc(v_axis, range_axis, 20*log10(RD_tx + eps)); axis <span class="string">xy</span>;
+    xlabel(<span class="string">'速度 (m/s)'</span>); ylabel(<span class="string">'距离 (m)'</span>);
+    title(sprintf(<span class="string">'Range&ndash;Doppler（Tx%d，非相干合成Rx）'</span>, tx-1));
+    cb = colorbar; cb.Label.String = <span class="string">'幅度 (dB)'</span>;
+<span class="keyword">end</span>
+</pre>
+<img vspace="5" hspace="5" src="untitled2_03.png" alt=""> <img vspace="5" hspace="5" src="untitled2_04.png" alt=""> <img vspace="5" hspace="5" src="untitled2_05.png" alt=""> <img vspace="5" hspace="5" src="untitled2_06.png" alt=""> <h2 id="13">==================== 子函数：1D CA-CFAR（均值） ====================</h2>
+<pre class="codeinput">
+<span class="keyword">function</span> detMask = cfar_ca_1d(x, win, guard, alpha)
+<span class="comment">% x      : 列向量(功率)</span>
+<span class="comment">% win    : 每侧训练单元数</span>
+<span class="comment">% guard  : 每侧保护单元数</span>
+<span class="comment">% alpha  : 阈值系数（&gt;1），等效 10^(门限_dB/10)</span>
+N = numel(x);
+detMask = false(N,1);
+<span class="keyword">for</span> i = 1:N
+    l1 = max(1, i - guard - win);
+    l2 = max(1, i - guard - 1);
+    r1 = min(N, i + guard + 1);
+    r2 = min(N, i + guard + win);
+    train = [x(l1:l2); x(r1:r2)];
+    <span class="keyword">if</span> numel(train) &lt; 4, <span class="keyword">continue</span>; <span class="keyword">end</span>
+    mu = mean(train);
+    <span class="keyword">if</span> x(i) &gt; alpha * mu
+        detMask(i) = true;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre>
+<pre class="codeoutput">Detection  1: Range = 2.64 m, Velocity = 0.00 m/s
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<br>
+</p>
+</div>
+<!--
+##### SOURCE BEGIN #####
+%% main_tdm2tx_demo.m  —— add CA-CFAR detection (Guard=8, Win=32, Thr=18 dB)
+clear; close all; clc;
+
+%% ====== 基本参数（按你的实际配置填写） ======
+SampleRate     = 5e6;           % Fs, ADC采样率 [Hz]
+FrequencySlope = 30e12;         % 调频斜率 [Hz/s]
+Nr  = 256;                      % 每个 chirp 的采样点数
+Nd  = 128;                      % 每帧 chirp 总数(包含所有Tx)
+Nrx = 4;                        % 接收天线数
+Ntx = 2;                        % 发射天线数 (TDM-MIMO)
+fc = 77.94745e9;                % 载频 [Hz]
+c  = 3e8;                       % 光速
+lambda = c/fc;
+Tc = 70e-6;                     % 单个chirp周期(含idle) [s]
+dataFile = './reflect_verticlal.bin';
+DO_OFFSET_SEARCH = true;
+
+%% ====== CFAR 参数 ======
+CFAR_guard  = 8;                % Guard window size
+CFAR_window = 32;               % Training window (每侧)
+CFAR_thr_dB = 18;               % 门限(dB) —— x > alpha * 均值
+alpha = 10^(CFAR_thr_dB/10);
+
+%% ====== 读取原始数据：返回 [Nrx x Nsamp] ======
+adc = readDCA1000(dataFile);    % 默认 16bit, 4 lanes, 复数IQ
+
+%% ====== 可选：粗搜最佳起点偏移（0..Nr-1 样点） ======
+bestOff = 0;
+if DO_OFFSET_SEARCH
+    numChirps = Nd;
+    Ns_need = Nr*numChirps;
+    assert(size(adc,2) >= Ns_need+Nr, '数据长度不足以做offset搜索');
+    bestScore = -inf;
+    for off = 0:Nr-1
+        adcFrame = adc(:, 1+off : off+Ns_need);
+        tmp = permute( reshape(adcFrame, [Nrx, Nr, numChirps]), [2 3 1] ); % [Nr,Nd,Nrx]
+        RFFT_test = fft(tmp .* reshape(hann(Nr),[Nr 1 1]), Nr, 1);
+        prof = squeeze(mean(mean(abs(RFFT_test(1:floor(Nr/2),:,:)),3),2));  % 距离剖面
+        score = max(prof);
+        if score > bestScore
+            bestScore = score; bestOff = off;
+        end
+    end
+    fprintf('自动选择的起点偏移 = %d 样点\n', bestOff);
+end
+
+%% ====== 截取一帧并 reshape 到 [Nr, Nd, Nrx] ======
+numChirps = Nd;                            % 总 chirp 数（包含所有Tx）
+adcFrame  = adc(:, 1+bestOff : bestOff+Nr*numChirps);
+tmp       = permute( reshape(adcFrame, [Nrx, Nr, numChirps]), [2 3 1] ); % [Nr,Nd,Nrx]
+
+%% ====== 按 2Tx 的 TDM 顺序拆分慢时间到每个 Tx ======
+Nd_perTx = numChirps / Ntx;
+assert(mod(numChirps,Ntx)==0, 'Nd(%d) 不是 Ntx(%d) 的整数倍', numChirps, Ntx);
+cube = zeros(Nr, Nd_perTx, Nrx, Ntx);
+for tx = 1:Ntx
+    chirpIdx = tx:Ntx:numChirps;     % Tx序列: Tx1,Tx2,Tx1,Tx2,...
+    cube(:,:,:,tx) = tmp(:, chirpIdx, :);   % [Nr,Nd_perTx,Nrx]
+end
+
+%% ====== 1D 距离向 FFT ======
+range_win = hann(Nr);
+cube_win  = cube .* reshape(range_win, [Nr 1 1 1]);
+
+NfftR = Nr;                                    % 可按需零填充
+RFFT  = fft(cube_win, NfftR, 1);               % [NfftR, Nd_perTx, Nrx, Ntx]
+
+% 只取正频半谱
+Nr_pos = floor(NfftR/2);
+RFFT   = RFFT(1:Nr_pos, :, :, :);              % [Nr_pos, Nd_perTx, Nrx, Ntx]
+
+% 物理距离轴
+range_axis = (0:Nr_pos-1) * (SampleRate/NfftR) * c / (2*FrequencySlope);
+
+%% ====== 2D 多普勒/速度向 FFT（沿慢时间） ======
+%RFFT_dc = RFFT - mean(RFFT, 2);                % 去静杂波
+RFFT_dc = RFFT;
+dop_win = hann(Nd_perTx).';
+RFFT_w  = RFFT_dc .* reshape(dop_win, [1 Nd_perTx 1 1]);
+
+NfftD = Nd_perTx;
+RD = fftshift(fft(RFFT_w, NfftD, 2), 2);       % [Nr_pos, NfftD, Nrx, Ntx]
+
+% 速度轴（注意 TDM 有效PRF = 1/(Ntx*Tc)）
+PRF_perTx = 1/(Ntx*Tc);
+fD_axis   = (-NfftD/2:NfftD/2-1)/NfftD * PRF_perTx;
+v_axis    = (lambda/2) * fD_axis;
+
+% 速度分辨率与不模糊速度
+v_res = (lambda/2) * (PRF_perTx/NfftD);
+v_max = (lambda/2) * (PRF_perTx/2);
+fprintf('速度分辨率: %.4f m/s, 最大不模糊速度: ±%.4f m/s\n', v_res, v_max);
+
+%% ====== Range–Doppler 图（非相干合成 Rx/Tx） ======
+% 画幅度图（保持你原有显示）
+RD_mag = squeeze(sum(sum(abs(RD), 3), 4));     % [Nr_pos, NfftD]
+RD_dB  = 20*log10(RD_mag + eps);
+figure(1); imagesc(v_axis, range_axis, RD_dB); axis xy;
+xlabel('速度 (m/s)'); ylabel('距离 (m)'); title('Range–Doppler（非相干合成Rx/Tx）');
+cb = colorbar; cb.Label.String = '幅度 (dB)'; hold on;
+
+%% ====== —— 新增：CA-CFAR 目标检测（在功率图上做） ======
+RD_pow = squeeze(sum(sum(abs(RD).^2, 3), 4));  % 功率图 [Nr_pos, NfftD]
+
+% 每个多普勒bin做 1D CA-CFAR（沿距离维）
+detMask = false(size(RD_pow));
+for d = 1:NfftD
+    x = RD_pow(:, d);                          % 该多普勒列的功率
+    detMask(:, d) = cfar_ca_1d(x, CFAR_window, CFAR_guard, alpha);
+end
+
+% 抑制邻近多次命中，只保留局部最大
+detMask = detMask & (imregionalmax(RD_pow));
+
+% 取出检测点并叠加到 RD 图
+[idx_r, idx_d] = find(detMask);
+plot(v_axis(idx_d), range_axis(idx_r), 'ro', 'MarkerSize', 6, 'LineWidth', 1.2);
+legend('CFAR detections');
+
+% 打印检测到的目标 (距离, 速度)
+for k = 1:numel(idx_r)
+    fprintf('Detection %2d: Range = %.2f m, Velocity = %.2f m/s\n', ...
+        k, range_axis(idx_r(k)), v_axis(idx_d(k)));
+end
+
+%% （保留）每个 Tx 的距离剖面 / Range–Doppler
+for tx = 1:Ntx
+    RP_tx = squeeze(mean(sum(abs(RFFT(:,:,:,tx)),3),2));  % [Nr_pos x 1]
+    figure; plot(range_axis, 20*log10(RP_tx + eps)); grid on;
+    xlabel('距离 (m)'); ylabel('幅度 (dB)');
+    title(sprintf('距离剖面（Tx%d，非相干合成Rx）', tx-1));
+end
+
+for tx = 1:Ntx
+    RD_tx = squeeze(sum(abs(RD(:,:,:,tx)),3));  % [Nr_pos, NfftD]
+    figure; imagesc(v_axis, range_axis, 20*log10(RD_tx + eps)); axis xy;
+    xlabel('速度 (m/s)'); ylabel('距离 (m)');
+    title(sprintf('Range–Doppler（Tx%d，非相干合成Rx）', tx-1));
+    cb = colorbar; cb.Label.String = '幅度 (dB)';
+end
+
+%% ==================== 子函数：1D CA-CFAR（均值） ====================
+function detMask = cfar_ca_1d(x, win, guard, alpha)
+% x      : 列向量(功率)
+% win    : 每侧训练单元数
+% guard  : 每侧保护单元数
+% alpha  : 阈值系数（>1），等效 10^(门限_dB/10)
+N = numel(x);
+detMask = false(N,1);
+for i = 1:N
+    l1 = max(1, i - guard - win);
+    l2 = max(1, i - guard - 1);
+    r1 = min(N, i + guard + 1);
+    r2 = min(N, i + guard + win);
+    train = [x(l1:l2); x(r1:r2)];
+    if numel(train) < 4, continue; end
+    mu = mean(train);
+    if x(i) > alpha * mu
+        detMask(i) = true;
+    end
+end
+end
+##### SOURCE END #####
+-->
+</body>
+</html>
